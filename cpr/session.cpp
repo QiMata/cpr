@@ -19,6 +19,7 @@ class Session::Impl {
     void SetParameters(const Parameters& parameters);
     void SetParameters(Parameters&& parameters);
     void SetHeader(const Header& header);
+    void SetHeaders(const std::vector<Header>& headers);
     void SetTimeout(const Timeout& timeout);
     void SetAuth(const Authentication& auth);
     void SetDigest(const Digest& auth);
@@ -124,6 +125,32 @@ void Session::Impl::SetHeader(const Header& header) {
             auto temp = curl_slist_append(chunk, header_string.data());
             if (temp) {
                 chunk = temp;
+            }
+        }
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+        curl_slist_free_all(curl_->chunk);
+        curl_->chunk = chunk;
+    }
+}
+
+void Session::Impl::SetHeaders(const std::vector<Header> &headers) {
+    auto curl = curl_->handle;
+    if (curl) {
+        struct curl_slist* chunk = NULL;
+        for (auto& header : headers) {
+            for (auto item = header.cbegin(); item != header.cend(); ++item) {
+                auto header_string = std::string{item->first};
+                if (item->second.empty()) {
+                    header_string += ";";
+                } else {
+                    header_string += ": " + item->second;
+                }
+
+                auto temp = curl_slist_append(chunk, header_string.data());
+                if (temp) {
+                    chunk = temp;
+                }
             }
         }
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
@@ -429,6 +456,7 @@ void Session::SetUrl(const Url& url) { pimpl_->SetUrl(url); }
 void Session::SetParameters(const Parameters& parameters) { pimpl_->SetParameters(parameters); }
 void Session::SetParameters(Parameters&& parameters) { pimpl_->SetParameters(std::move(parameters)); }
 void Session::SetHeader(const Header& header) { pimpl_->SetHeader(header); }
+void Session::SetHeaders(const std::vector<cpr::Header> &headers) { pimpl_->SetHeaders(headers);}
 void Session::SetTimeout(const Timeout& timeout) { pimpl_->SetTimeout(timeout); }
 void Session::SetAuth(const Authentication& auth) { pimpl_->SetAuth(auth); }
 void Session::SetDigest(const Digest& auth) { pimpl_->SetDigest(auth); }

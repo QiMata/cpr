@@ -30,6 +30,7 @@ class Session {
     void SetParameters(const Parameters& parameters);
     void SetParameters(Parameters&& parameters);
     void SetHeader(const Header& header);
+    void SetHeaders(const std::vector<Header>& headers);
     void SetTimeout(const Timeout& timeout);
     void SetAuth(const Authentication& auth);
     void SetDigest(const Digest& auth);
